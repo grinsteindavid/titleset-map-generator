@@ -29,6 +29,17 @@
 - Compress and optimize images and assets
 - Use efficient data structures for frequent operations
 
+
+## FILE ORGANIZATION BEST PRACTICES
+- Separate HTML, CSS, and JavaScript into distinct files
+- Use a consistent file naming convention across the project
+- Group related files in logical directories (components, utils, styles)
+- Split large CSS files into modular components or by functionality
+- Create separate JS modules for different application features
+- Use index files to consolidate and re-export related modules
+- Keep third-party libraries in a separate vendor directory
+- Use relative paths for imports within related modules
+
 ## CODE ORGANIZATION
 - Separate concerns with modular architecture
 - Group related functionality into cohesive modules
