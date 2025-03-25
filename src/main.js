@@ -70,3 +70,22 @@ ipcMain.handle('save-map', async (event, mapData) => {
   }
   return { success: false };
 });
+
+ipcMain.handle('open-map', async () => {
+  const { canceled, filePaths } = await dialog.showOpenDialog({
+    title: 'Open Map',
+    filters: [{ name: 'JSON', extensions: ['json'] }],
+    properties: ['openFile']
+  });
+  
+  if (!canceled && filePaths.length > 0) {
+    const filePath = filePaths[0];
+    try {
+      const mapData = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+      return { success: true, mapData };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  }
+  return { success: false };
+});

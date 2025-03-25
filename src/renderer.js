@@ -5,6 +5,7 @@ const tilesetContainer = document.getElementById('tileset-container');
 const selectedTileInfo = document.getElementById('selected-tile-info');
 const btnOpenTileset = document.getElementById('btn-open-tileset');
 const btnExportMap = document.getElementById('btn-export-map');
+const btnImportMap = document.getElementById('btn-import-map');
 const btnCreateMap = document.getElementById('btn-create-map');
 const mapWidthInput = document.getElementById('map-width');
 const mapHeightInput = document.getElementById('map-height');
@@ -32,6 +33,7 @@ function init() {
   // Set up event listeners
   btnOpenTileset.addEventListener('click', openTileset);
   btnExportMap.addEventListener('click', exportMap);
+  btnImportMap.addEventListener('click', importMap);
   btnCreateMap.addEventListener('click', createMap);
   tilesetCanvas.addEventListener('click', selectTile);
   mapCanvas.addEventListener('click', placeTile);
@@ -577,6 +579,113 @@ async function exportMap() {
   } catch (error) {
     console.error('Error exporting map:', error);
   }
+}
+
+// Import map data from JSON
+async function importMap() {
+  try {
+    // Check if we need to warn about not having a tileset loaded
+    if (!tilesetImage) {
+      showNotification('No tileset loaded. You may need to load a tileset to see the map properly.', 'info');
+    }
+    
+    // Use Electron API to open a map file
+    const result = await window.electronAPI.openMap();
+    
+    if (result.success && result.mapData) {
+      // Validate map data structure
+      if (!validateMapData(result.mapData)) {
+        showNotification('Invalid map data format', 'error');
+        return;
+      }
+      
+      // Update local map data
+      mapData = result.mapData;
+      
+      // Update map dimensions
+      mapWidth = mapData.width;
+      mapHeight = mapData.height;
+      tileSize = mapData.tileSize || 32;
+      
+      // Update input values
+      mapWidthInput.value = mapWidth;
+      mapHeightInput.value = mapHeight;
+      
+      // Set canvas dimensions
+      mapCanvas.width = mapWidth * tileSize;
+      mapCanvas.height = mapHeight * tileSize;
+      
+      // Enable export button if tileset is loaded
+      if (tilesetImage) {
+        btnExportMap.disabled = false;
+      }
+      
+      // Draw the map
+      drawMap();
+      
+      // Show confirmation message
+      showNotification('Map imported successfully', 'success');
+      console.log('Map imported successfully');
+    } else if (result.error) {
+      showNotification('Error importing map', 'error');
+      console.error('Error importing map:', result.error);
+    }
+  } catch (error) {
+    showNotification('Error importing map', 'error');
+    console.error('Error importing map:', error);
+  }
+}
+
+// Validate map data structure
+function validateMapData(data) {
+  // Check required properties
+  if (!data.width || !data.height || !data.layers) {
+    return false;
+  }
+  
+  // Check layers structure
+  if (!Array.isArray(data.layers) || data.layers.length < 4) {
+    return false;
+  }
+  
+  // Check each layer has correct dimensions
+  for (const layer of data.layers) {
+    if (!Array.isArray(layer) || layer.length !== data.height) {
+      return false;
+    }
+    
+    for (const row of layer) {
+      if (!Array.isArray(row) || row.length !== data.width) {
+        return false;
+      }
+    }
+  }
+  
+  return true;
+}
+
+// Display a notification to the user
+function showNotification(message, type = 'info') {
+  // Create notification element
+  const notification = document.createElement('div');
+  notification.className = `notification ${type}`;
+  notification.textContent = message;
+  
+  // Append to body
+  document.body.appendChild(notification);
+  
+  // Fade in
+  setTimeout(() => {
+    notification.classList.add('visible');
+  }, 10);
+  
+  // Remove after delay
+  setTimeout(() => {
+    notification.classList.remove('visible');
+    setTimeout(() => {
+      notification.remove();
+    }, 500); // Wait for fade out animation
+  }, 3000);
 }
 
 // Initialize application
