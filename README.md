@@ -1,5 +1,8 @@
 # Tileset Map Generator
 
+<img width="1212" alt="image" src="https://github.com/user-attachments/assets/dfb96d76-d690-45cc-a172-a801a645a678" />
+
+
 A simple Electron-based application for creating tile-based maps with multiple layers using custom tilesets.
 
 ## Features
