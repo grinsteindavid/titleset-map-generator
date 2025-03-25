@@ -1,0 +1,71 @@
+# Best Practices Guide
+
+## ELECTRON APP BEST PRACTICES
+- Use contextIsolation and disable nodeIntegration for security
+- Communicate between main and renderer processes using IPC
+- Handle app lifecycle events properly (ready, window-all-closed, activate)
+- Optimize resource usage by cleaning up listeners and references
+- Use proper error handling for file operations and IPC calls
+- Cache frequently used resources to improve performance
+- Implement proper window state management (position, size)
+
+## JAVASCRIPT BEST PRACTICES
+- Use const and let instead of var
+- Prefer async/await over callbacks for asynchronous operations
+- Implement proper error handling with try/catch blocks
+- Use destructuring for cleaner code
+- Follow consistent naming conventions (camelCase for variables/functions)
+- Document complex functions with clear comments
+- Avoid DOM manipulation in tight loops
+- Debounce event handlers for performance-intensive operations
+- Use requestAnimationFrame for smooth animations
+
+## PERFORMANCE BEST PRACTICES
+- Minimize DOM repaints and reflows
+- Optimize canvas rendering with batch operations
+- Use web workers for CPU-intensive tasks
+- Implement virtual scrolling for large datasets
+- Lazy-load resources and components when needed
+- Compress and optimize images and assets
+- Use efficient data structures for frequent operations
+
+## CODE ORGANIZATION
+- Separate concerns with modular architecture
+- Group related functionality into cohesive modules
+- Maintain a clear project structure with logical file organization
+- Use meaningful file and directory names
+- Implement consistent import/export patterns
+- Document architecture decisions and component relationships
+- Follow the principle of least privilege for security-sensitive code
+
+## TESTING BEST PRACTICES
+- Write focused, atomic tests that test one thing at a time
+- Use descriptive test names that explain expected behavior
+- Mock external dependencies and focus on unit functionality
+- Separate setup and teardown logic with beforeEach/afterEach
+- Test both success and error scenarios
+- Implement integration tests for critical user flows
+- Use test coverage reports to identify untested code
+
+## UX BEST PRACTICES
+- Provide clear feedback for user actions
+- Implement proper loading states and error messages
+- Ensure consistent styling and layout across the application
+- Make interactive elements clearly identifiable
+- Support keyboard navigation and accessibility
+- Design for different screen sizes and resolutions
+
+
+## UX STYLE GUIDELINES
+- Use a dark, sci-fi themed color palette with blue/teal accents
+- Implement isometric grid layouts for map displays
+- Design HUD-style interfaces with information panels at screen edges
+- Use clear iconography for different unit types and actions
+- Provide audio feedback for important actions and alerts
+- Incorporate minimap for navigation and strategic overview
+- Design distinctive cursor states for different actions
+- Support hotkeys for efficient command execution
+- Use progress bars for construction/research timers
+- Implement clear visual feedback for selection states
+- Design modal dialog boxes with tech-inspired borders
+- Ensure resource counters are prominently displayed
