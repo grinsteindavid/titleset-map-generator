@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tileset Map Generator</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <div class="toolbar">
+      <button id="btn-open-tileset">Open Tileset</button>
+      <button id="btn-export-map" disabled>Export Map</button>
+      <div class="map-size-controls">
+        <label for="map-width">Width:</label>
+        <input type="number" id="map-width" min="5" max="100" value="20">
+        <label for="map-height">Height:</label>
+        <input type="number" id="map-height" min="5" max="100" value="15">
+        <button id="btn-create-map">Create Map</button>
+      </div>
+    </div>
+    
+    <div class="main-content">
+      <div class="tileset-panel">
+        <h3>Tileset</h3>
+        <div class="tileset-tabs">
+          <button class="tab-button tileset-tab active" data-tab="tiles">Tiles</button>
+          <button class="tab-button tileset-tab" data-tab="collision">Collision</button>
+        </div>
+        <div id="tileset-container">
+          <p class="empty-state">Open a tileset to start</p>
+          <canvas id="tileset-canvas"></canvas>
+        </div>
+        <div id="selected-tile-info">
+          <p>Selected Tile: None</p>
+        </div>
+        <div id="multi-select-controls">
+          <label><input type="checkbox" id="multi-select-mode"> Multi-Select Mode</label>
+          <div id="selected-tiles-container" class="hidden">
+            <p>Selected Tiles: <span id="selected-tiles-count">0</span></p>
+            <button id="clear-selection">Clear Selection</button>
+          </div>
+        </div>
+      </div>
+      
+      <div class="map-panel">
+        <div class="map-tabs">
+          <button class="tab-button active" data-layer="0">Layer 1 (Background)</button>
+          <button class="tab-button" data-layer="1">Layer 2 (Main)</button>
+          <button class="tab-button" data-layer="2">Layer 3 (Foreground)</button>
+          <button class="tab-button" data-layer="3">Collision</button>
+        </div>
+        <div class="map-container">
+          <canvas id="map-canvas"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <script src="renderer.js"></script>
+</body>
+</html>
