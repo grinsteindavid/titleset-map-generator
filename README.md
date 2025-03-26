@@ -2,6 +2,9 @@
 
 <img width="1212" alt="image" src="https://github.com/user-attachments/assets/dfb96d76-d690-45cc-a172-a801a645a678" />
 
+<img width="1193" alt="image" src="https://github.com/user-attachments/assets/58734508-29b9-4852-842c-a484f907a6a5" />
+
+
 
 A simple Electron-based application for creating tile-based maps with multiple layers using custom tilesets.
 
