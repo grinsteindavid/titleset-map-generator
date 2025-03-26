@@ -52,7 +52,14 @@ function init() {
   document.querySelectorAll('.reset-layer-btn').forEach(button => {
     button.addEventListener('click', (e) => {
       e.stopPropagation(); // Prevent triggering the layer tab switch
-      resetLayer(parseInt(e.target.dataset.layer));
+      
+      // Check if this is the clear all collisions button
+      if (button.id === 'clear-all-collisions') {
+        clearAllCollisions();
+      } else {
+        // Regular layer reset
+        resetLayer(parseInt(e.target.dataset.layer));
+      }
     });
   });
   
@@ -179,16 +186,8 @@ function createMap() {
   mapCanvas.width = mapWidth * tileSize;
   mapCanvas.height = mapHeight * tileSize;
   
-  // Update button text based on whether this is a new map or restarting
-  if (mapData) {
-    // We're restarting an existing map
-    btnCreateMap.textContent = 'Restart Map';
-    showNotification('Map restarted with clean layers', 'success');
-  } else {
-    // First time creating the map
-    btnCreateMap.textContent = 'Create Map';
-    showNotification('New map created successfully', 'success');
-  }
+  // Check if we already had map data before
+  const hadMapDataBefore = mapData !== null;
   
   // Initialize map data with three visual layers plus collision layer
   mapData = {
@@ -203,6 +202,17 @@ function createMap() {
       Array(mapHeight).fill().map(() => Array(mapWidth).fill(null)) // Collision layer
     ]
   };
+
+  if (hadMapDataBefore) {
+    // We're restarting an existing map
+    showNotification('Map restarted with clean layers', 'success');
+  } else {
+    // First time creating the map
+    showNotification('New map created successfully', 'success');
+  }
+  
+  // Always update button text to 'Restart Map' since we now have map data
+  btnCreateMap.textContent = 'Restart Map';
   
   // Clear the canvas and draw grid
   clearMapCanvas();
@@ -867,6 +877,40 @@ function drawMap() {
   mapCtx.globalAlpha = 1.0;
 }
 
+// Clear all collision data from the map
+function clearAllCollisions() {
+  if (!mapData) {
+    showNotification('No map data to clear collisions from', 'warning');
+    return;
+  }
+  
+  // Ask for confirmation
+  if (!confirm('Are you sure you want to clear ALL collision data? This cannot be undone.')) {
+    return;
+  }
+  
+  // Clear collision layer (layer 3)
+  for (let row = 0; row < mapHeight; row++) {
+    for (let col = 0; col < mapWidth; col++) {
+      mapData.layers[3][row][col] = null;
+    }
+  }
+  
+  // Clear global collision tiles tracking
+  window.currentCollisionTiles = new Set();
+  
+  // Redraw map
+  drawMap();
+  
+  // Update tileset to reflect cleared collisions
+  if (tilesetImage && currentTilesetTab === 'collision') {
+    tilesetCtx.drawImage(tilesetImage, 0, 0);
+    highlightSelectedTiles();
+  }
+  
+  showNotification('All collision data has been cleared', 'success');
+}
+
 // Export map data to JSON
 async function exportMap() {
   if (!mapData) {
@@ -956,6 +1000,9 @@ async function importMap() {
         tilesetCtx.drawImage(tilesetImage, 0, 0);
         highlightSelectedTiles();
       }
+      
+      // Update Create Map button text since we now have map data
+      btnCreateMap.textContent = 'Restart Map';
       
       // Show confirmation message
       showNotification('Map imported successfully', 'success');

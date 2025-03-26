@@ -25,8 +25,13 @@
       <div class="tileset-panel">
         <h3>Tileset</h3>
         <div class="tileset-tabs">
-          <button class="tab-button tileset-tab active" data-tab="tiles">Tiles</button>
-          <button class="tab-button tileset-tab" data-tab="collision">Collision</button>
+          <div class="tab-with-reset">
+            <button class="tab-button tileset-tab active" data-tab="tiles">Tiles</button>
+          </div>
+          <div class="tab-with-reset">
+            <button class="tab-button tileset-tab" data-tab="collision">Collision</button>
+            <button class="reset-layer-btn" id="clear-all-collisions" title="Clear all collision data">🗑️</button>
+          </div>
         </div>
         <div id="tileset-container">
           <p class="empty-state">Open a tileset to start</p>
