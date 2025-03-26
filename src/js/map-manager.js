@@ -177,8 +177,8 @@ export function drawMap() {
             // Find what tile index is at this position in each visual layer
             for (let visualLayer = 0; visualLayer < 3; visualLayer++) {
               const tileIndex = state.mapData.layers[visualLayer][row][col];
-              if (tileIndex !== null && window.currentCollisionTiles) {
-                window.currentCollisionTiles.add(tileIndex);
+              if (tileIndex !== null && state.currentCollisionTiles) {
+                state.currentCollisionTiles.add(tileIndex);
               }
             }
           } else {

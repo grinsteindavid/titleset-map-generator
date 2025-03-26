@@ -118,7 +118,7 @@ export function selectTile(e) {
     selectedTileInfo.innerHTML = `Selected Collision: (${tileCol}, ${tileRow}) - Index: ${tileIndex}`;
     
     // Check if this is already a collision tile
-    const isAlreadyCollision = window.currentCollisionTiles && window.currentCollisionTiles.has(tileIndex);
+    const isAlreadyCollision = state.currentCollisionTiles && state.currentCollisionTiles.has(tileIndex);
     
     // Immediately apply to map if we have a map and are on the collision layer
     if (state.mapData) {
@@ -228,8 +228,8 @@ export function highlightSelectedTiles() {
     }
   }
   
-  // Store the collisionTiles in a variable accessible to other functions
-  window.currentCollisionTiles = collisionTiles;
+  // Store the collisionTiles in the app state
+  state.currentCollisionTiles = collisionTiles;
   
   // If we're in multi-select mode, highlight all selected tiles in blue
   if (state.multiSelectMode) {

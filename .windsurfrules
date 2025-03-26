@@ -48,6 +48,13 @@
 - Implement consistent import/export patterns
 - Document architecture decisions and component relationships
 - Follow the principle of least privilege for security-sensitive code
+- Separate data manipulation from UI rendering
+- Use the MVC (Model-View-Controller) pattern when appropriate
+- Keep business logic independent from presentation logic
+- Create clear interfaces between different parts of the application
+- Avoid tight coupling between components
+- Use dependency injection for better testability
+- Implement event-driven communication between loosely coupled modules
 
 ## TESTING BEST PRACTICES
 - Write focused, atomic tests that test one thing at a time

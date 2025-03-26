@@ -24,6 +24,7 @@ export const state = {
   mapWidth: 20,
   mapHeight: 15,
   tileSize: 32, // Default tile size (32x32 pixels)
+  currentCollisionTiles: new Set(), // Store collision tiles
   
   // Layer state
   currentLayer: 0,

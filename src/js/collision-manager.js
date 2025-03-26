@@ -25,8 +25,8 @@ export function clearAllCollisions() {
     }
   }
   
-  // Clear global collision tiles tracking
-  window.currentCollisionTiles = new Set();
+  // Clear collision tiles in app state
+  state.currentCollisionTiles = new Set();
   
   // Redraw map
   drawMap();
