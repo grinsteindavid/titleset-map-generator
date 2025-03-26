@@ -228,6 +228,10 @@ body {
   background-color: #f44336;
 }
 
+.notification.warning {
+  background-color: #ff9800;
+}
+
 .notification.info {
   background-color: #2196f3;
 }

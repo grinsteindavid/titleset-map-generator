@@ -17,6 +17,7 @@ const mapCtx = mapCanvas.getContext('2d');
 
 // Application state
 let tilesetImage = null;
+let tilesetFilename = ''; // Store the tileset filename
 let selectedTile = null;
 let selectedTiles = []; // For multi-tile selection
 let currentLayer = 0;
@@ -27,6 +28,7 @@ let tileSize = 32; // Default tile size (32x32 pixels)
 let tilesetCols = 0;
 let mapData = null;
 let multiSelectMode = false;
+let isTabSelected = true; // Track whether a tab is selected
 
 // Initialize the application
 function init() {
@@ -72,9 +74,19 @@ async function openTileset() {
     if (result.success && result.filePath) {
       const img = new Image();
       
+      // Extract filename from the path
+      const filePath = result.filePath;
+      tilesetFilename = filePath.substring(filePath.lastIndexOf('/') + 1);
+      
       img.onload = () => {
         // Hide empty state message
         document.querySelector('.empty-state').style.display = 'none';
+        
+        // Remove any no-tileset message if it exists
+        const noTilesetMsg = document.getElementById('no-tileset-message');
+        if (noTilesetMsg) {
+          noTilesetMsg.remove();
+        }
         
         // Store tileset image
         tilesetImage = img;
@@ -93,6 +105,8 @@ async function openTileset() {
         if (mapData) {
           btnExportMap.disabled = false;
         }
+        
+        showNotification(`Tileset "${tilesetFilename}" loaded successfully`, 'success');
       };
       
       // Convert file path to base64 data URL since we can't directly load from a file path in the renderer
@@ -100,11 +114,40 @@ async function openTileset() {
     }
   } catch (error) {
     console.error('Error opening tileset:', error);
+    showNotification('Error loading tileset', 'error');
   }
+}
+
+// Check if tileset is loaded and show message if not
+function checkTilesetLoaded() {
+  if (!tilesetImage) {
+    // Remove existing message if present
+    const existingMessage = document.getElementById('no-tileset-message');
+    if (existingMessage) {
+      existingMessage.remove();
+    }
+    
+    // Create message element
+    const messageElem = document.createElement('div');
+    messageElem.id = 'no-tileset-message';
+    messageElem.className = 'notification warning';
+    messageElem.textContent = 'No tileset is loaded. Please load a tileset first to perform map operations.';
+    
+    // Add to map container
+    document.querySelector('.map-container').appendChild(messageElem);
+    return false;
+  }
+  return true;
 }
 
 // Create a new map with specified dimensions
 function createMap() {
+  // Check if tileset is loaded
+  if (!checkTilesetLoaded()) {
+    showNotification('Cannot create map without a tileset loaded', 'warning');
+    return;
+  }
+  
   // Get map dimensions from inputs
   mapWidth = parseInt(mapWidthInput.value) || 20;
   mapHeight = parseInt(mapHeightInput.value) || 15;
@@ -126,6 +169,7 @@ function createMap() {
     width: mapWidth,
     height: mapHeight,
     tileSize: tileSize,
+    tilesetFilename: tilesetFilename, // Store the tileset filename in the map data
     layers: [
       Array(mapHeight).fill().map(() => Array(mapWidth).fill(null)),
       Array(mapHeight).fill().map(() => Array(mapWidth).fill(null)),
@@ -142,6 +186,8 @@ function createMap() {
   if (tilesetImage) {
     btnExportMap.disabled = false;
   }
+  
+  showNotification('New map created successfully', 'success');
 }
 
 // Switch between tileset tabs (tiles/collision)
@@ -168,7 +214,10 @@ function switchTilesetTab(tab) {
 
 // Select a tile from the tileset
 function selectTile(e) {
-  if (!tilesetImage) return;
+  if (!tilesetImage) {
+    showNotification('No tileset loaded. Please load a tileset first.', 'warning');
+    return;
+  }
   
   // Get click coordinates relative to the canvas
   const rect = tilesetCanvas.getBoundingClientRect();
@@ -258,7 +307,25 @@ function clearSelectedTiles() {
 
 // Place a tile on the map
 function placeTile(e) {
-  if (!mapData || !tilesetImage) return;
+  if (!mapData) {
+    showNotification('No map created. Please create a map first.', 'warning');
+    return;
+  }
+  
+  if (!tilesetImage) {
+    showNotification('No tileset loaded. Please load a tileset first.', 'warning');
+    return;
+  }
+  
+  if (!isTabSelected) {
+    showNotification('No layer selected. Please select a layer tab first.', 'warning');
+    return;
+  }
+  
+  if (!selectedTile && !multiSelectMode) {
+    showNotification('No tile selected. Please select a tile from the tileset.', 'info');
+    return;
+  }
   if (!selectedTile && !multiSelectMode) return;
   if (multiSelectMode && selectedTiles.length === 0) return;
   
@@ -345,7 +412,7 @@ function calculateSelectionBounds() {
 
 // Handle mouse hover over map for preview
 function handleMapHover(e) {
-  if (!mapData || !tilesetImage) return;
+  if (!mapData || !tilesetImage || !isTabSelected) return;
   if (!selectedTile && !multiSelectMode) return;
   if (multiSelectMode && selectedTiles.length === 0) return;
   
@@ -420,6 +487,7 @@ function switchLayer(layerIndex) {
   
   // Update current layer
   currentLayer = layerIndex;
+  isTabSelected = true;
   
   // Update tab buttons
   tabButtons.forEach(button => {
@@ -429,8 +497,43 @@ function switchLayer(layerIndex) {
     }
   });
   
+  // Remove the no-tab-selected message if it exists
+  const noTabMessage = document.getElementById('no-tab-selected-message');
+  if (noTabMessage) {
+    noTabMessage.remove();
+  }
+  
   // Redraw map
   drawMap();
+}
+
+// Deselect all tabs
+function deselectAllTabs() {
+  isTabSelected = false;
+  tabButtons.forEach(button => {
+    button.classList.remove('active');
+  });
+  
+  // Show message that no tab is selected
+  showNoTabSelectedMessage();
+}
+
+// Show message when no tab is selected
+function showNoTabSelectedMessage() {
+  // Remove existing message if present
+  const existingMessage = document.getElementById('no-tab-selected-message');
+  if (existingMessage) {
+    existingMessage.remove();
+  }
+  
+  // Create message element
+  const messageElem = document.createElement('div');
+  messageElem.id = 'no-tab-selected-message';
+  messageElem.className = 'notification warning';
+  messageElem.textContent = 'No layer tab is selected. Please select a layer to edit.';
+  
+  // Add to map container
+  document.querySelector('.map-container').appendChild(messageElem);
 }
 
 // Clear map canvas
@@ -559,7 +662,18 @@ function drawMap() {
 
 // Export map data to JSON
 async function exportMap() {
-  if (!mapData) return;
+  if (!mapData) {
+    showNotification('No map data to export', 'error');
+    return;
+  }
+  
+  if (!tilesetImage) {
+    showNotification('Cannot export map without a tileset loaded', 'warning');
+    return;
+  }
+  
+  // Ensure the tileset filename is included in the map data
+  mapData.tilesetFilename = tilesetFilename;
   
   try {
     // Prepare map data for export
@@ -586,7 +700,8 @@ async function importMap() {
   try {
     // Check if we need to warn about not having a tileset loaded
     if (!tilesetImage) {
-      showNotification('No tileset loaded. You may need to load a tileset to see the map properly.', 'info');
+      showNotification('No tileset loaded. You must load a tileset before importing a map.', 'warning');
+      return;
     }
     
     // Use Electron API to open a map file
@@ -597,6 +712,14 @@ async function importMap() {
       if (!validateMapData(result.mapData)) {
         showNotification('Invalid map data format', 'error');
         return;
+      }
+      
+      // Check if map has a tileset filename and compare with current
+      if (result.mapData.tilesetFilename && result.mapData.tilesetFilename !== tilesetFilename) {
+        showNotification(
+          `Warning: The map was created with tileset "${result.mapData.tilesetFilename}" but you currently have "${tilesetFilename}" loaded. This may cause display issues.`, 
+          'warning'
+        );
       }
       
       // Update local map data
@@ -615,10 +738,8 @@ async function importMap() {
       mapCanvas.width = mapWidth * tileSize;
       mapCanvas.height = mapHeight * tileSize;
       
-      // Enable export button if tileset is loaded
-      if (tilesetImage) {
-        btnExportMap.disabled = false;
-      }
+      // Enable export button
+      btnExportMap.disabled = false;
       
       // Draw the map
       drawMap();
