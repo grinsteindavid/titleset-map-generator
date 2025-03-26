@@ -1,6 +1,5 @@
 import { state } from './app-state.js';
-import { validateMapData } from './map-manager.js';
-import { drawMap } from './shared-utils.js';
+import { validateMapData, drawMap } from './map-manager.js';
 import { showNotification } from './ui-utils.js';
 import { highlightSelectedTiles } from './tileset-manager.js';
 import { mapCanvas, mapWidthInput, mapHeightInput, tilesetCtx } from './dom-elements.js';

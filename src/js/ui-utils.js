@@ -25,23 +25,3 @@ export function showNotification(message, type = 'info') {
     }, 500); // Wait for fade out animation
   }, 3000);
 }
-
-/**
- * Show message when no tab is selected
- */
-export function showNoTabSelectedMessage() {
-  // Remove existing message if present
-  const existingMessage = document.getElementById('no-tab-selected-message');
-  if (existingMessage) {
-    existingMessage.remove();
-  }
-  
-  // Create message element
-  const messageElem = document.createElement('div');
-  messageElem.id = 'no-tab-selected-message';
-  messageElem.className = 'notification warning';
-  messageElem.textContent = 'No layer tab is selected. Please select a layer to edit.';
-  
-  // Add to map container
-  document.querySelector('.map-container').appendChild(messageElem);
-}

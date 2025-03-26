@@ -6,6 +6,7 @@
 import { state } from './app-state.js';
 import { exportMap, importMap } from './io-manager.js';
 import { showNotification } from './ui-utils.js';
+import { drawGrid } from './map-manager.js';
 
 // Import required DOM elements
 import {
@@ -20,7 +21,6 @@ import {
   mapCanvas
 } from './dom-elements.js';
 import { checkTilesetLoaded, highlightSelectedTiles } from './tileset-manager.js';
-import { clearMapCanvas, drawGrid } from './shared-utils.js';
 
 // Track toolbar initialization
 let isInitialized = false;

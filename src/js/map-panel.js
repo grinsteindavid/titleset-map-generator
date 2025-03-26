@@ -4,9 +4,8 @@
 
 import { state } from './app-state.js';
 import { mapCanvas } from './dom-elements.js';
-import { placeTile, handleMapHover } from './map-manager.js';
+import { placeTile, handleMapHover , drawMap} from './map-manager.js';
 import { clearAllCollisions, resetLayer } from './collision-manager.js';
-import { switchLayer, drawMap } from './shared-utils.js';
 import { showNotification } from './ui-utils.js';
 
 // Track initialization state
@@ -84,4 +83,36 @@ export function setActiveMapLayer(layerIndex) {
   
   // Switch to the specified layer
   switchLayer(layerIndex);
+}
+
+/**
+ * Switch between layers
+ * @param {number} layerIndex - The layer index to switch to
+ */
+export function switchLayer(layerIndex) {
+  if (layerIndex < 0 || layerIndex > 3) return;
+  
+  // Update current layer
+  state.currentLayer = layerIndex;
+  state.isTabSelected = true;
+  
+  // Update ONLY map tab buttons, not tileset tabs
+  document.querySelectorAll('.tab-button').forEach(button => {
+    // Only process buttons that have a layer attribute (map tabs)
+    if (button.dataset.layer !== undefined) {
+      button.classList.remove('active');
+      if (parseInt(button.dataset.layer) === state.currentLayer) {
+        button.classList.add('active');
+      }
+    }
+  });
+  
+  // Remove the no-tab-selected message if it exists
+  const noTabMessage = document.getElementById('no-tab-selected-message');
+  if (noTabMessage) {
+    noTabMessage.remove();
+  }
+  
+  // Redraw map
+  drawMap();
 }

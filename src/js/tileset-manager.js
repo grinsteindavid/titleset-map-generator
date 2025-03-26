@@ -1,7 +1,8 @@
 import { tilesetCanvas, tilesetCtx, selectedTileInfo, selectedTilesCount } from './dom-elements.js';
 import { showNotification } from './ui-utils.js';
 import { state } from './app-state.js';
-import { drawMap, switchLayer } from './shared-utils.js';
+import { switchLayer } from './map-panel.js';
+import { drawMap } from './map-manager.js';
 
 
 /**

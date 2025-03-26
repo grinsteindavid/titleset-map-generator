@@ -1,8 +1,8 @@
 import { state } from './app-state.js';
 import { showNotification } from './ui-utils.js';
-import { drawMap } from './shared-utils.js';
 import { highlightSelectedTiles } from './tileset-manager.js';
 import { tilesetCtx } from './dom-elements.js';
+import { drawMap } from './map-manager.js';
 
 /**
  * Clear all collision data from the map
