@@ -208,6 +208,12 @@ function createMap() {
   clearMapCanvas();
   drawGrid();
   
+  // Update tileset to show collision tiles if in collision tab
+  if (currentTilesetTab === 'collision' && tilesetImage) {
+    tilesetCtx.drawImage(tilesetImage, 0, 0);
+    highlightSelectedTiles();
+  }
+  
   // Enable export button if tileset is loaded
   if (tilesetImage) {
     btnExportMap.disabled = false;
@@ -287,6 +293,9 @@ function selectTile(e) {
     // Update selected tile info
     selectedTileInfo.innerHTML = `Selected Collision: (${tileCol}, ${tileRow}) - Index: ${tileIndex}`;
     
+    // Check if this is already a collision tile
+    const isAlreadyCollision = window.currentCollisionTiles && window.currentCollisionTiles.has(tileIndex);
+    
     // Immediately apply to map if we have a map and are on the collision layer
     if (mapData) {
       // Automatically switch to collision layer if not already there
@@ -312,13 +321,20 @@ function selectTile(e) {
         }
       }
       
-      // Redraw map to show changes
-      drawMap();
-      
+      // Only redraw if changes were made
       if (changesMade > 0) {
+        // Redraw map to show changes
+        drawMap();
+        // Update tileset highlighting after map changes
+        tilesetCtx.drawImage(tilesetImage, 0, 0);
+        highlightSelectedTiles();
+        
         showNotification(`Toggled collision for ${changesMade} tiles`, 'success');
+      } else {
+        // Just update the tileset highlighting to show selection
+        tilesetCtx.drawImage(tilesetImage, 0, 0);
+        highlightSelectedTiles();
       }
-      // Don't show warning if no tiles found - just select the tile silently
     }
   } else {
     // Regular tile selection logic for 'tiles' tab
@@ -386,6 +402,9 @@ function highlightSelectedTiles() {
     }
   }
   
+  // Store the collisionTiles in a variable accessible to other functions
+  window.currentCollisionTiles = collisionTiles;
+  
   // If we're in multi-select mode, highlight all selected tiles in blue
   if (multiSelectMode) {
     tilesetCtx.strokeStyle = 'blue';
@@ -410,6 +429,11 @@ function highlightSelectedTiles() {
       // Fill with semi-transparent red
       tilesetCtx.fillStyle = 'rgba(255, 0, 0, 0.3)';
       tilesetCtx.fillRect(tileX, tileY, tileSize, tileSize);
+      
+      // Add a subtle border for better visibility
+      tilesetCtx.strokeStyle = 'rgba(255, 0, 0, 0.7)';
+      tilesetCtx.lineWidth = 1;
+      tilesetCtx.strokeRect(tileX, tileY, tileSize, tileSize);
     });
   }
   
@@ -419,6 +443,8 @@ function highlightSelectedTiles() {
       // Highlight the currently selected collision tile with stronger highlight
       tilesetCtx.fillStyle = 'rgba(255, 0, 0, 0.5)';
       tilesetCtx.fillRect(selectedTile.x, selectedTile.y, tileSize, tileSize);
+      
+      // Add a stronger border to the selected collision tile
       tilesetCtx.strokeStyle = 'red';
       tilesetCtx.lineWidth = 2;
       tilesetCtx.strokeRect(selectedTile.x, selectedTile.y, tileSize, tileSize);
@@ -785,6 +811,15 @@ function drawMap() {
             mapCtx.moveTo(col * tileSize + tileSize, row * tileSize);
             mapCtx.lineTo(col * tileSize, row * tileSize + tileSize);
             mapCtx.stroke();
+            
+            // Make sure we update the collision tiles in our global collection
+            // Find what tile index is at this position in each visual layer
+            for (let visualLayer = 0; visualLayer < 3; visualLayer++) {
+              const tileIndex = mapData.layers[visualLayer][row][col];
+              if (tileIndex !== null && window.currentCollisionTiles) {
+                window.currentCollisionTiles.add(tileIndex);
+              }
+            }
           } else {
             // It's a tile index, not just a collision marker
             const tilesetCol = value % tilesetCols;
@@ -915,6 +950,12 @@ async function importMap() {
       
       // Draw the map
       drawMap();
+      
+      // Update tileset to show collision tiles if we're in collision tab
+      if (currentTilesetTab === 'collision') {
+        tilesetCtx.drawImage(tilesetImage, 0, 0);
+        highlightSelectedTiles();
+      }
       
       // Show confirmation message
       showNotification('Map imported successfully', 'success');
