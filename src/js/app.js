@@ -1,77 +1,30 @@
-// Import DOM elements
-import {
-  tilesetCanvas,
-  mapCanvas,
-  tabButtons
-} from './dom-elements.js';
 
-// Import application state
-import { state } from './app-state.js';
 
-// Import module functions
-import { selectTile, clearSelectedTiles, switchTilesetTab } from './tileset-manager.js';
-import { placeTile, handleMapHover } from './map-manager.js';
-import { clearAllCollisions, resetLayer } from './collision-manager.js';
-import { initToolbar } from './toolbar-manager.js';
-// Import showNotification for the multi-select mode toggle
+// Import UI panel modules
+import { initToolbar } from './toolbar-panel.js';
+import { initTilesetPanel } from './tileset-panel.js';
+import { initMapPanel } from './map-panel.js';
+
+// Import utility modules
 import { showNotification } from './ui-utils.js';
-import { switchLayer } from './shared-utils.js';
 
 /**
  * Initialize the application
+ * Following MVC-like pattern with separated UI components
  */
 function init() {
-  // Initialize toolbar
-  initToolbar();
-  tilesetCanvas.addEventListener('click', selectTile);
-  mapCanvas.addEventListener('click', placeTile);
-  mapCanvas.addEventListener('mousemove', handleMapHover);
+  // Log application start
+  console.log('Initializing Tileset Map Generator...');
   
-  // Set up map layer tab event listeners
-  tabButtons.forEach(button => {
-    if (button.dataset.layer !== undefined) {
-      button.addEventListener('click', (e) => switchLayer(parseInt(e.target.dataset.layer)));
-    }
-  });
+  // Initialize UI components in order
+  initToolbar();     // Initialize toolbar controls
+  initTilesetPanel(); // Initialize tileset panel and its event handlers
+  initMapPanel();    // Initialize map panel and its event handlers
   
-  // Set up reset layer buttons
-  document.querySelectorAll('.reset-layer-btn').forEach(button => {
-    button.addEventListener('click', (e) => {
-      e.stopPropagation(); // Prevent triggering the layer tab switch
-      
-      // Check if this is the clear all collisions button
-      if (button.id === 'clear-all-collisions') {
-        clearAllCollisions();
-      } else {
-        // Regular layer reset
-        resetLayer(parseInt(e.target.dataset.layer));
-      }
-    });
-  });
+  // Display welcome message
+  showNotification('Application initialized successfully', 'success');
   
-  // Set up tileset tab event listeners
-  document.querySelectorAll('.tileset-tab').forEach(button => {
-    button.addEventListener('click', (e) => switchTilesetTab(e.target.dataset.tab));
-  });
-  
-  // Multi-select mode toggle
-  document.getElementById('multi-select-mode').addEventListener('change', (e) => {
-    // Prevent enabling multi-select in collision tab
-    if (state.currentTilesetTab === 'collision' && e.target.checked) {
-      e.target.checked = false;
-      showNotification('Multi-select is only available in Tiles tab', 'info');
-      return;
-    }
-    
-    state.multiSelectMode = e.target.checked;
-    document.getElementById('selected-tiles-container').classList.toggle('hidden', !state.multiSelectMode);
-    if (!state.multiSelectMode) {
-      clearSelectedTiles();
-    }
-  });
-  
-  // Clear selection button
-  document.getElementById('clear-selection').addEventListener('click', clearSelectedTiles);
+  console.log('Application initialization complete');
 }
 
 // Initialize application
