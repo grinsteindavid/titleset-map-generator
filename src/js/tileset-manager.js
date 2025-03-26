@@ -1,6 +1,7 @@
 import { tilesetCanvas, tilesetCtx, selectedTileInfo, selectedTilesCount } from './dom-elements.js';
 import { showNotification } from './ui-utils.js';
 import { state } from './app-state.js';
+import { drawMap, switchLayer } from './shared-utils.js';
 
 /**
  * Load and display tileset image
@@ -353,6 +354,3 @@ export function switchTilesetTab(tab) {
     highlightSelectedTiles();
   }
 }
-
-// Import from shared utils to avoid circular dependency
-import { drawMap, switchLayer } from './shared-utils.js';

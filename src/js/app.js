@@ -14,9 +14,12 @@ import { state } from './app-state.js';
 
 // Import module functions
 import { openTileset, selectTile, clearSelectedTiles, switchTilesetTab } from './tileset-manager.js';
-import { createMap, placeTile, handleMapHover, switchLayer, deselectAllTabs } from './map-manager.js';
+import { createMap, placeTile, handleMapHover } from './map-manager.js';
 import { clearAllCollisions, resetLayer } from './collision-manager.js';
 import { exportMap, importMap } from './io-manager.js';
+// Import showNotification for the multi-select mode toggle
+import { showNotification } from './ui-utils.js';
+import { switchLayer } from './shared-utils.js';
 
 /**
  * Initialize the application
@@ -81,5 +84,4 @@ function init() {
 // Initialize application
 init();
 
-// Import showNotification for the multi-select mode toggle
-import { showNotification } from './ui-utils.js';
+
