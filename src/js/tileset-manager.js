@@ -198,7 +198,8 @@ export function selectTile(e) {
     }
   }
   
-  // Redraw tileset with highlighting
+  // Completely clear the canvas before redrawing to prevent any artifacts with transparent tiles
+  tilesetCtx.clearRect(0, 0, tilesetCanvas.width, tilesetCanvas.height);
   tilesetCtx.drawImage(state.tilesetImage, 0, 0);
   highlightSelectedTiles();
 }
@@ -207,6 +208,9 @@ export function selectTile(e) {
  * Highlight selected tiles on the tileset
  */
 export function highlightSelectedTiles() {
+  // Make sure canvas is fully cleared before any highlighting
+  if (!state.tilesetImage) return;
+  
   // Store collision information for all tiles
   let collisionTiles = new Set();
   
@@ -290,8 +294,10 @@ export function clearSelectedTiles() {
   state.selectedTiles = [];
   selectedTilesCount.textContent = '0';
   
-  // Redraw tileset
+  // Redraw tileset with a complete canvas clear first
   if (state.tilesetImage) {
+    // Full clear of the canvas to prevent any transparency issues
+    tilesetCtx.clearRect(0, 0, tilesetCanvas.width, tilesetCanvas.height);
     tilesetCtx.drawImage(state.tilesetImage, 0, 0);
     if (!state.multiSelectMode && state.selectedTile) {
       highlightSelectedTiles();
@@ -305,6 +311,10 @@ export function clearSelectedTiles() {
  */
 export function switchTilesetTab(tab) {
   if (tab !== 'tiles' && tab !== 'collision') return;
+  
+  // Clear the current selected tile to avoid selection bugs when switching tabs
+  state.selectedTile = null;
+  selectedTileInfo.innerHTML = 'No tile selected';
   
   // Update current tab
   state.currentTilesetTab = tab;
@@ -337,6 +347,8 @@ export function switchTilesetTab(tab) {
   
   // Redraw tileset with appropriate highlights
   if (state.tilesetImage) {
+    // Clear the entire canvas first to prevent transparent tiles showing previous selections
+    tilesetCtx.clearRect(0, 0, tilesetCanvas.width, tilesetCanvas.height);
     tilesetCtx.drawImage(state.tilesetImage, 0, 0);
     highlightSelectedTiles();
   }
