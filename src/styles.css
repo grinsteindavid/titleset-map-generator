@@ -162,6 +162,27 @@ body {
   display: flex;
   flex-wrap: wrap;
   border-bottom: 1px solid #ccc;
+  padding: 5px;
+}
+
+.tab-with-reset {
+  display: flex;
+  margin-right: 5px;
+  margin-bottom: 5px;
+}
+
+.reset-layer-btn {
+  padding: 4px 8px;
+  background-color: #0066cc;
+  color: #fff;
+  border: none;
+  border-radius: 0 4px 4px 0;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.reset-layer-btn:hover {
+  background-color: #f44336;
 }
 
 .tab-button {
@@ -169,7 +190,8 @@ body {
   background-color: #f0f0f0;
   border: none;
   cursor: pointer;
-  border-right: 1px solid #ccc;
+  border-right: none;
+  border-radius: 4px 0 0 4px;
 }
 
 .tab-button[data-layer="3"] {

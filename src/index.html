@@ -46,10 +46,22 @@
       
       <div class="map-panel">
         <div class="map-tabs">
-          <button class="tab-button active" data-layer="0">Layer 1 (Background)</button>
-          <button class="tab-button" data-layer="1">Layer 2 (Main)</button>
-          <button class="tab-button" data-layer="2">Layer 3 (Foreground)</button>
-          <button class="tab-button" data-layer="3">Collision</button>
+          <div class="tab-with-reset">
+            <button class="tab-button active" data-layer="0">Layer 1 (Background)</button>
+            <button class="reset-layer-btn" data-layer="0" title="Clear this layer">🗑️</button>
+          </div>
+          <div class="tab-with-reset">
+            <button class="tab-button" data-layer="1">Layer 2 (Main)</button>
+            <button class="reset-layer-btn" data-layer="1" title="Clear this layer">🗑️</button>
+          </div>
+          <div class="tab-with-reset">
+            <button class="tab-button" data-layer="2">Layer 3 (Foreground)</button>
+            <button class="reset-layer-btn" data-layer="2" title="Clear this layer">🗑️</button>
+          </div>
+          <div class="tab-with-reset">
+            <button class="tab-button" data-layer="3">Collision</button>
+            <button class="reset-layer-btn" data-layer="3" title="Clear all collisions">🗑️</button>
+          </div>
         </div>
         <div class="map-container">
           <canvas id="map-canvas"></canvas>

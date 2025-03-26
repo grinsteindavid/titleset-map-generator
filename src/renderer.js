@@ -48,6 +48,14 @@ function init() {
     }
   });
   
+  // Set up reset layer buttons
+  document.querySelectorAll('.reset-layer-btn').forEach(button => {
+    button.addEventListener('click', (e) => {
+      e.stopPropagation(); // Prevent triggering the layer tab switch
+      resetLayer(parseInt(e.target.dataset.layer));
+    });
+  });
+  
   // Set up tileset tab event listeners
   document.querySelectorAll('.tileset-tab').forEach(button => {
     button.addEventListener('click', (e) => switchTilesetTab(e.target.dataset.tab));
@@ -55,6 +63,13 @@ function init() {
   
   // Multi-select mode toggle
   document.getElementById('multi-select-mode').addEventListener('change', (e) => {
+    // Prevent enabling multi-select in collision tab
+    if (currentTilesetTab === 'collision' && e.target.checked) {
+      e.target.checked = false;
+      showNotification('Multi-select is only available in Tiles tab', 'info');
+      return;
+    }
+    
     multiSelectMode = e.target.checked;
     document.getElementById('selected-tiles-container').classList.toggle('hidden', !multiSelectMode);
     if (!multiSelectMode) {
@@ -164,6 +179,17 @@ function createMap() {
   mapCanvas.width = mapWidth * tileSize;
   mapCanvas.height = mapHeight * tileSize;
   
+  // Update button text based on whether this is a new map or restarting
+  if (mapData) {
+    // We're restarting an existing map
+    btnCreateMap.textContent = 'Restart Map';
+    showNotification('Map restarted with clean layers', 'success');
+  } else {
+    // First time creating the map
+    btnCreateMap.textContent = 'Create Map';
+    showNotification('New map created successfully', 'success');
+  }
+  
   // Initialize map data with three visual layers plus collision layer
   mapData = {
     width: mapWidth,
@@ -186,8 +212,6 @@ function createMap() {
   if (tilesetImage) {
     btnExportMap.disabled = false;
   }
-  
-  showNotification('New map created successfully', 'success');
 }
 
 // Switch between tileset tabs (tiles/collision)
@@ -197,13 +221,31 @@ function switchTilesetTab(tab) {
   // Update current tab
   currentTilesetTab = tab;
   
-  // Update tab buttons
+  // Update ONLY tileset tab buttons, not map tabs
   document.querySelectorAll('.tileset-tab').forEach(button => {
     button.classList.remove('active');
     if (button.dataset.tab === currentTilesetTab) {
       button.classList.add('active');
     }
   });
+  
+  // Make sure we don't accidentally remove active status from map tabs
+  if (isTabSelected && currentLayer >= 0 && currentLayer <= 3) {
+    tabButtons.forEach(button => {
+      if (button.dataset.layer !== undefined && parseInt(button.dataset.layer) === currentLayer) {
+        button.classList.add('active');
+      }
+    });
+  }
+  
+  // Disable multi-select mode in collision tab
+  if (tab === 'collision' && multiSelectMode) {
+    multiSelectMode = false;
+    document.getElementById('multi-select-mode').checked = false;
+    document.getElementById('selected-tiles-container').classList.add('hidden');
+    clearSelectedTiles();
+    showNotification('Multi-select is only available in Tiles tab', 'info');
+  }
   
   // Redraw tileset with appropriate highlights
   if (tilesetImage) {
@@ -233,31 +275,9 @@ function selectTile(e) {
   const tileRow = Math.floor(y / tileSize);
   const tileIndex = tileRow * tilesetCols + tileCol;
   
-  // Handle multi-select mode
-  if (multiSelectMode) {
-    const tileInfo = {
-      x: tileX,
-      y: tileY,
-      index: tileIndex,
-      col: tileCol,
-      row: tileRow
-    };
-    
-    // Check if tile is already selected
-    const existingIndex = selectedTiles.findIndex(t => t.index === tileIndex);
-    
-    if (existingIndex !== -1) {
-      // Remove if already selected
-      selectedTiles.splice(existingIndex, 1);
-    } else {
-      // Add to selection
-      selectedTiles.push(tileInfo);
-    }
-    
-    // Update count display
-    document.getElementById('selected-tiles-count').textContent = selectedTiles.length;
-  } else {
-    // Single select mode
+  // Handle collision tab differently with immediate toggle in map
+  if (currentTilesetTab === 'collision') {
+    // Select the tile so it's highlighted
     selectedTile = {
       x: tileX,
       y: tileY,
@@ -265,7 +285,77 @@ function selectTile(e) {
     };
     
     // Update selected tile info
-    selectedTileInfo.innerHTML = `Selected Tile: (${tileCol}, ${tileRow}) - Index: ${tileIndex}`;
+    selectedTileInfo.innerHTML = `Selected Collision: (${tileCol}, ${tileRow}) - Index: ${tileIndex}`;
+    
+    // Immediately apply to map if we have a map and are on the collision layer
+    if (mapData) {
+      // Automatically switch to collision layer if not already there
+      if (currentLayer !== 3) {
+        switchLayer(3);
+        showNotification('Automatically switched to collision layer', 'info');
+      }
+      
+      // Toggle collision for all map tiles matching this tile
+      let changesMade = 0;
+      for (let row = 0; row < mapHeight; row++) {
+        for (let col = 0; col < mapWidth; col++) {
+          // For any visual layer tiles that match the selected tile, toggle their collision
+          for (let visualLayer = 0; visualLayer < 3; visualLayer++) {
+            if (mapData.layers[visualLayer][row][col] === tileIndex) {
+              // Toggle collision - if null set to 1, if 1 set to null
+              const currentValue = mapData.layers[3][row][col];
+              mapData.layers[3][row][col] = currentValue === 1 ? null : 1;
+              changesMade++;
+              break; // Once we've found a match on any layer, we're done with this tile
+            }
+          }
+        }
+      }
+      
+      // Redraw map to show changes
+      drawMap();
+      
+      if (changesMade > 0) {
+        showNotification(`Toggled collision for ${changesMade} tiles`, 'success');
+      }
+      // Don't show warning if no tiles found - just select the tile silently
+    }
+  } else {
+    // Regular tile selection logic for 'tiles' tab
+    // Handle multi-select mode
+    if (multiSelectMode) {
+      const tileInfo = {
+        x: tileX,
+        y: tileY,
+        index: tileIndex,
+        col: tileCol,
+        row: tileRow
+      };
+      
+      // Check if tile is already selected
+      const existingIndex = selectedTiles.findIndex(t => t.index === tileIndex);
+      
+      if (existingIndex !== -1) {
+        // Remove if already selected
+        selectedTiles.splice(existingIndex, 1);
+      } else {
+        // Add to selection
+        selectedTiles.push(tileInfo);
+      }
+      
+      // Update count display
+      document.getElementById('selected-tiles-count').textContent = selectedTiles.length;
+    } else {
+      // Single select mode
+      selectedTile = {
+        x: tileX,
+        y: tileY,
+        index: tileIndex
+      };
+      
+      // Update selected tile info
+      selectedTileInfo.innerHTML = `Selected Tile: (${tileCol}, ${tileRow}) - Index: ${tileIndex}`;
+    }
   }
   
   // Redraw tileset with highlighting
@@ -275,19 +365,69 @@ function selectTile(e) {
 
 // Highlight selected tiles on the tileset
 function highlightSelectedTiles() {
+  // Store collision information for all tiles
+  let collisionTiles = new Set();
+  
+  // Create a map of tiles that have collision, even if they're not placed yet
+  if (mapData && currentTilesetTab === 'collision') {
+    // First add all collision tiles currently in the map
+    for (let row = 0; row < mapHeight; row++) {
+      for (let col = 0; col < mapWidth; col++) {
+        if (mapData.layers[3][row][col] === 1) {
+          // Find what tile is in this position on each visual layer
+          for (let visualLayer = 0; visualLayer < 3; visualLayer++) {
+            const tileIndex = mapData.layers[visualLayer][row][col];
+            if (tileIndex !== null) {
+              collisionTiles.add(tileIndex);
+            }
+          }
+        }
+      }
+    }
+  }
+  
+  // If we're in multi-select mode, highlight all selected tiles in blue
   if (multiSelectMode) {
-    // Highlight all selected tiles
     tilesetCtx.strokeStyle = 'blue';
     tilesetCtx.lineWidth = 2;
     
     selectedTiles.forEach(tile => {
       tilesetCtx.strokeRect(tile.x, tile.y, tileSize, tileSize);
     });
-  } else if (selectedTile) {
-    // Highlight single selected tile
-    tilesetCtx.strokeStyle = currentTilesetTab === 'collision' ? 'orange' : 'red';
-    tilesetCtx.lineWidth = 2;
-    tilesetCtx.strokeRect(selectedTile.x, selectedTile.y, tileSize, tileSize);
+  }
+  
+  // Highlight collision tiles in the tileset if we're in collision tab
+  if (currentTilesetTab === 'collision' && tilesetImage) {
+    const tilesetWidth = tilesetImage.width;
+    const tilesetCols = Math.floor(tilesetWidth / tileSize);
+    
+    collisionTiles.forEach(tileIndex => {
+      const tileRow = Math.floor(tileIndex / tilesetCols);
+      const tileCol = tileIndex % tilesetCols;
+      const tileX = tileCol * tileSize;
+      const tileY = tileRow * tileSize;
+      
+      // Fill with semi-transparent red
+      tilesetCtx.fillStyle = 'rgba(255, 0, 0, 0.3)';
+      tilesetCtx.fillRect(tileX, tileY, tileSize, tileSize);
+    });
+  }
+  
+  // Highlight the currently selected tile
+  if (selectedTile) {
+    if (currentTilesetTab === 'collision') {
+      // Highlight the currently selected collision tile with stronger highlight
+      tilesetCtx.fillStyle = 'rgba(255, 0, 0, 0.5)';
+      tilesetCtx.fillRect(selectedTile.x, selectedTile.y, tileSize, tileSize);
+      tilesetCtx.strokeStyle = 'red';
+      tilesetCtx.lineWidth = 2;
+      tilesetCtx.strokeRect(selectedTile.x, selectedTile.y, tileSize, tileSize);
+    } else {
+      // Blue highlight for tiles tab (matching multi-select color for consistency)
+      tilesetCtx.strokeStyle = 'blue';
+      tilesetCtx.lineWidth = 2;
+      tilesetCtx.strokeRect(selectedTile.x, selectedTile.y, tileSize, tileSize);
+    }
   }
 }
 
@@ -345,16 +485,25 @@ function placeTile(e) {
   if (currentLayer === 3) {
     // For collision layer, we toggle between null and 1 (blocked)
     if (currentTilesetTab === 'collision') {
-      const currentValue = mapData.layers[currentLayer][tileRow][tileCol];
-      mapData.layers[currentLayer][tileRow][tileCol] = currentValue === 1 ? null : 1;
-    } else {
-      // If we're in regular tiles tab but on collision layer, place selected tile
-      if (multiSelectMode && selectedTiles.length > 0) {
-        // Place first selected tile when in multi-select mode
-        mapData.layers[currentLayer][tileRow][tileCol] = selectedTiles[0].index;
-      } else if (selectedTile) {
-        mapData.layers[currentLayer][tileRow][tileCol] = selectedTile.index;
+      // Check if there's a tile on any of the visual layers before toggling collision
+      let hasTile = false;
+      for (let layer = 0; layer < 3; layer++) {
+        if (mapData.layers[layer][tileRow][tileCol] !== null) {
+          hasTile = true;
+          break;
+        }
       }
+      
+      // Only toggle collision for tiles that exist in one of the visual layers
+      if (hasTile) {
+        const currentValue = mapData.layers[currentLayer][tileRow][tileCol];
+        mapData.layers[currentLayer][tileRow][tileCol] = currentValue === 1 ? null : 1;
+      }
+      // No message if no tile found - just silently do nothing
+    } else {
+      // In regular tiles tab, we shouldn't be able to paint when on collision layer
+      // Just silently return without action
+      return;
     }
   } else {
     // For regular layers
@@ -413,8 +562,13 @@ function calculateSelectionBounds() {
 // Handle mouse hover over map for preview
 function handleMapHover(e) {
   if (!mapData || !tilesetImage || !isTabSelected) return;
-  if (!selectedTile && !multiSelectMode) return;
-  if (multiSelectMode && selectedTiles.length === 0) return;
+  
+  // In collision tab, we don't need a tile selected to preview toggle actions
+  if (currentLayer !== 3) {
+    // For regular layers, we need a tile selected
+    if (!selectedTile && !multiSelectMode) return;
+    if (multiSelectMode && selectedTiles.length === 0) return;
+  }
   
   // Get hover coordinates relative to the canvas
   const rect = mapCanvas.getBoundingClientRect();
@@ -489,11 +643,14 @@ function switchLayer(layerIndex) {
   currentLayer = layerIndex;
   isTabSelected = true;
   
-  // Update tab buttons
+  // Update ONLY map tab buttons, not tileset tabs
   tabButtons.forEach(button => {
-    button.classList.remove('active');
-    if (parseInt(button.dataset.layer) === currentLayer) {
-      button.classList.add('active');
+    // Only process buttons that have a layer attribute (map tabs)
+    if (button.dataset.layer !== undefined) {
+      button.classList.remove('active');
+      if (parseInt(button.dataset.layer) === currentLayer) {
+        button.classList.add('active');
+      }
     }
   });
   
@@ -610,7 +767,7 @@ function drawMap() {
         
         if (value !== null) {
           if (value === 1) {
-            // Draw simple collision indicator
+            // Draw simple collision indicator - more visible now
             mapCtx.fillStyle = 'rgba(255, 0, 0, 0.5)';
             mapCtx.fillRect(
               col * tileSize, row * tileSize, tileSize, tileSize
@@ -620,6 +777,14 @@ function drawMap() {
             mapCtx.strokeRect(
               col * tileSize, row * tileSize, tileSize, tileSize
             );
+            
+            // Add a cross pattern for better visibility
+            mapCtx.beginPath();
+            mapCtx.moveTo(col * tileSize, row * tileSize);
+            mapCtx.lineTo(col * tileSize + tileSize, row * tileSize + tileSize);
+            mapCtx.moveTo(col * tileSize + tileSize, row * tileSize);
+            mapCtx.lineTo(col * tileSize, row * tileSize + tileSize);
+            mapCtx.stroke();
           } else {
             // It's a tile index, not just a collision marker
             const tilesetCol = value % tilesetCols;
@@ -640,15 +805,22 @@ function drawMap() {
     }
   } else {
     // If we're not on the collision layer, still show collision indicators with low opacity
-    mapCtx.globalAlpha = 0.15;
+    mapCtx.globalAlpha = 0.2;
     
     for (let row = 0; row < mapHeight; row++) {
       for (let col = 0; col < mapWidth; col++) {
         const value = mapData.layers[3][row][col];
         if (value === 1) {
-          // Draw simple collision indicator
+          // Draw simple collision indicator with a subtle pattern
           mapCtx.fillStyle = 'red';
           mapCtx.fillRect(
+            col * tileSize, row * tileSize, tileSize, tileSize
+          );
+          
+          // Add a subtle border
+          mapCtx.strokeStyle = 'rgba(255, 0, 0, 0.5)';
+          mapCtx.lineWidth = 1;
+          mapCtx.strokeRect(
             col * tileSize, row * tileSize, tileSize, tileSize
           );
         }
@@ -755,6 +927,41 @@ async function importMap() {
     showNotification('Error importing map', 'error');
     console.error('Error importing map:', error);
   }
+}
+
+// Reset a specific layer (clear all tiles)
+function resetLayer(layerIndex) {
+  if (!mapData || layerIndex < 0 || layerIndex > 3) {
+    showNotification('Cannot reset layer - no map exists', 'error');
+    return;
+  }
+
+  // Ask for confirmation
+  const layerName = layerIndex === 3 ? 'collision layer' : `layer ${layerIndex + 1}`;
+  if (!confirm(`Are you sure you want to clear the entire ${layerName}? This cannot be undone.`)) {
+    return;
+  }
+
+  // Reset the layer to all null values
+  for (let row = 0; row < mapHeight; row++) {
+    for (let col = 0; col < mapWidth; col++) {
+      mapData.layers[layerIndex][row][col] = null;
+    }
+  }
+
+  // Redraw the map
+  drawMap();
+  
+  // If we're in collision tab and resetting the collision layer, also update tileset view
+  if (layerIndex === 3 && currentTilesetTab === 'collision') {
+    // Redraw tileset to update collision indicators
+    if (tilesetImage) {
+      tilesetCtx.drawImage(tilesetImage, 0, 0);
+      highlightSelectedTiles();
+    }
+  }
+
+  showNotification(`${layerName.charAt(0).toUpperCase() + layerName.slice(1)} has been cleared`, 'success');
 }
 
 // Validate map data structure
