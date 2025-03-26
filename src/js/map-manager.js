@@ -1,78 +1,7 @@
 import { mapCanvas, mapCtx } from './dom-elements.js';
 import { state } from './app-state.js';
 import { showNotification } from './ui-utils.js';
-import { checkTilesetLoaded, highlightSelectedTiles } from './tileset-manager.js';
-import { clearMapCanvas, drawGrid, drawMap } from './shared-utils.js';
-
-/**
- * Create a new map with specified dimensions
- */
-export function createMap() {
-  // Check if tileset is loaded
-  if (!checkTilesetLoaded()) {
-    showNotification('Cannot create map without a tileset loaded', 'warning');
-    return;
-  }
-  
-  // Get map dimensions from inputs
-  state.mapWidth = parseInt(state.mapWidthInput.value) || 20;
-  state.mapHeight = parseInt(state.mapHeightInput.value) || 15;
-  
-  // Validate dimensions
-  state.mapWidth = Math.max(5, Math.min(100, state.mapWidth));
-  state.mapHeight = Math.max(5, Math.min(100, state.mapHeight));
-  
-  // Update input values
-  state.mapWidthInput.value = state.mapWidth;
-  state.mapHeightInput.value = state.mapHeight;
-  
-  // Set canvas dimensions
-  mapCanvas.width = state.mapWidth * state.tileSize;
-  mapCanvas.height = state.mapHeight * state.tileSize;
-  
-  // Check if we already had map data before
-  const hadMapDataBefore = state.mapData !== null;
-  
-  // Initialize map data with three visual layers plus collision layer
-  state.mapData = {
-    width: state.mapWidth,
-    height: state.mapHeight,
-    tileSize: state.tileSize,
-    tilesetFilename: state.tilesetFilename, // Store the tileset filename in the map data
-    layers: [
-      Array(state.mapHeight).fill().map(() => Array(state.mapWidth).fill(null)),
-      Array(state.mapHeight).fill().map(() => Array(state.mapWidth).fill(null)),
-      Array(state.mapHeight).fill().map(() => Array(state.mapWidth).fill(null)),
-      Array(state.mapHeight).fill().map(() => Array(state.mapWidth).fill(null)) // Collision layer
-    ]
-  };
-
-  if (hadMapDataBefore) {
-    // We're restarting an existing map
-    showNotification('Map restarted with clean layers', 'success');
-  } else {
-    // First time creating the map
-    showNotification('New map created successfully', 'success');
-  }
-  
-  // Always update button text to 'Restart Map' since we now have map data
-  state.btnCreateMap.textContent = 'Restart Map';
-  
-  // Clear the canvas and draw grid
-  clearMapCanvas();
-  drawGrid();
-  
-  // Update tileset to show collision tiles if in collision tab
-  if (state.currentTilesetTab === 'collision' && state.tilesetImage) {
-    state.tilesetCtx.drawImage(state.tilesetImage, 0, 0);
-    highlightSelectedTiles();
-  }
-  
-  // Enable export button if tileset is loaded
-  if (state.tilesetImage) {
-    state.btnExportMap.disabled = false;
-  }
-}
+import { drawMap } from './shared-utils.js';
 
 /**
  * Place a tile on the map

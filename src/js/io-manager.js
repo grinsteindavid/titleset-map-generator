@@ -33,11 +33,14 @@ export async function exportMap() {
     const result = await window.electronAPI.saveMap(exportData);
     
     if (result.success) {
+      showNotification('Map exported successfully', 'success');
       console.log('Map exported successfully');
     } else if (result.error) {
+      showNotification('Error exporting map', 'error');
       console.error('Error exporting map:', result.error);
     }
   } catch (error) {
+    showNotification('Error exporting map', 'error');
     console.error('Error exporting map:', error);
   }
 }

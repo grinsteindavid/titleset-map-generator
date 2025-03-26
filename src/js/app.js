@@ -1,9 +1,5 @@
 // Import DOM elements
 import {
-  btnOpenTileset,
-  btnExportMap,
-  btnImportMap,
-  btnCreateMap,
   tilesetCanvas,
   mapCanvas,
   tabButtons
@@ -13,10 +9,10 @@ import {
 import { state } from './app-state.js';
 
 // Import module functions
-import { openTileset, selectTile, clearSelectedTiles, switchTilesetTab } from './tileset-manager.js';
-import { createMap, placeTile, handleMapHover } from './map-manager.js';
+import { selectTile, clearSelectedTiles, switchTilesetTab } from './tileset-manager.js';
+import { placeTile, handleMapHover } from './map-manager.js';
 import { clearAllCollisions, resetLayer } from './collision-manager.js';
-import { exportMap, importMap } from './io-manager.js';
+import { initToolbar } from './toolbar-manager.js';
 // Import showNotification for the multi-select mode toggle
 import { showNotification } from './ui-utils.js';
 import { switchLayer } from './shared-utils.js';
@@ -25,11 +21,8 @@ import { switchLayer } from './shared-utils.js';
  * Initialize the application
  */
 function init() {
-  // Set up event listeners
-  btnOpenTileset.addEventListener('click', openTileset);
-  btnExportMap.addEventListener('click', exportMap);
-  btnImportMap.addEventListener('click', importMap);
-  btnCreateMap.addEventListener('click', createMap);
+  // Initialize toolbar
+  initToolbar();
   tilesetCanvas.addEventListener('click', selectTile);
   mapCanvas.addEventListener('click', placeTile);
   mapCanvas.addEventListener('mousemove', handleMapHover);

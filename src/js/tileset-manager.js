@@ -3,59 +3,6 @@ import { showNotification } from './ui-utils.js';
 import { state } from './app-state.js';
 import { drawMap, switchLayer } from './shared-utils.js';
 
-/**
- * Load and display tileset image
- */
-export async function openTileset() {
-  try {
-    const result = await window.electronAPI.openTileset();
-    
-    if (result.success && result.filePath) {
-      const img = new Image();
-      
-      // Extract filename from the path
-      const filePath = result.filePath;
-      state.tilesetFilename = filePath.substring(filePath.lastIndexOf('/') + 1);
-      
-      img.onload = () => {
-        // Hide empty state message
-        document.querySelector('.empty-state').style.display = 'none';
-        
-        // Remove any no-tileset message if it exists
-        const noTilesetMsg = document.getElementById('no-tileset-message');
-        if (noTilesetMsg) {
-          noTilesetMsg.remove();
-        }
-        
-        // Store tileset image
-        state.tilesetImage = img;
-        
-        // Resize tileset canvas to match image dimensions
-        tilesetCanvas.width = img.width;
-        tilesetCanvas.height = img.height;
-        
-        // Draw the tileset
-        tilesetCtx.drawImage(img, 0, 0);
-        
-        // Calculate the number of columns in the tileset
-        state.tilesetCols = Math.floor(img.width / state.tileSize);
-        
-        // Enable export button if map has been created
-        if (state.mapData) {
-          state.btnExportMap.disabled = false;
-        }
-        
-        showNotification(`Tileset "${state.tilesetFilename}" loaded successfully`, 'success');
-      };
-      
-      // Convert file path to base64 data URL since we can't directly load from a file path in the renderer
-      img.src = 'file://' + result.filePath;
-    }
-  } catch (error) {
-    console.error('Error opening tileset:', error);
-    showNotification('Error loading tileset', 'error');
-  }
-}
 
 /**
  * Check if tileset is loaded and show message if not
