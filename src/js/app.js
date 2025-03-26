@@ -21,9 +21,6 @@ function init() {
   initTilesetPanel(); // Initialize tileset panel and its event handlers
   initMapPanel();    // Initialize map panel and its event handlers
   
-  // Display welcome message
-  showNotification('Application initialized successfully', 'success');
-  
   console.log('Application initialization complete');
 }
 
