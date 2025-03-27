@@ -1,8 +1,8 @@
 # Tileset Map Generator
 
-<img width="1212" alt="image" src="https://github.com/user-attachments/assets/dfb96d76-d690-45cc-a172-a801a645a678" />
+<img width="1195" alt="image" src="https://github.com/user-attachments/assets/56508aca-1ab6-4e02-ada9-c0567bc32bbf" />
 
-<img width="1193" alt="image" src="https://github.com/user-attachments/assets/58734508-29b9-4852-842c-a484f907a6a5" />
+<img width="741" alt="image" src="https://github.com/user-attachments/assets/c520bb43-b5e3-402f-988e-6577c8a05a94" />
 
 
 
