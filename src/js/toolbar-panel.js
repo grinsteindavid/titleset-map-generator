@@ -14,6 +14,7 @@ import {
   btnExportMap,
   btnImportMap,
   btnCreateMap,
+  btnPreviewMap,
   mapWidthInput,
   mapHeightInput,
   tilesetCtx,
@@ -37,6 +38,7 @@ export function initToolbar() {
   btnExportMap.addEventListener('click', exportMap);
   btnImportMap.addEventListener('click', importMap);
   btnCreateMap.addEventListener('click', createMap);
+  btnPreviewMap.addEventListener('click', previewMap);
   
   // Set up dimension input handlers
   mapWidthInput.addEventListener('change', validateDimensions);
@@ -86,8 +88,9 @@ export function updateToolbarState() {
   // Skip if not initialized yet
   if (!isInitialized) return;
   
-  // Enable/disable export button based on map and tileset state
+  // Enable/disable export and preview buttons based on map and tileset state
   btnExportMap.disabled = !state.mapData || !state.tilesetImage;
+  btnPreviewMap.disabled = !state.mapData || !state.tilesetImage;
   
   // Update create map button text based on whether map exists
   btnCreateMap.textContent = state.mapData ? 'Restart Map' : 'Create Map';
@@ -221,8 +224,170 @@ export function createMap() {
     highlightSelectedTiles();
   }
   
-  // Enable export button if tileset is loaded
+  // Enable export and preview buttons if tileset is loaded
   if (state.tilesetImage) {
-    state.btnExportMap.disabled = false;
+    btnExportMap.disabled = false;
+    btnPreviewMap.disabled = false;
   }
+}
+
+/**
+ * Open a new window with a full preview of the map
+ */
+export function previewMap() {
+  // Check if map exists
+  if (!state.mapData) {
+    showNotification('No map to preview. Please create a map first.', 'warning');
+    return;
+  }
+  
+  // Check if tileset is loaded
+  if (!state.tilesetImage) {
+    showNotification('No tileset loaded. Please load a tileset first.', 'warning');
+    return;
+  }
+  
+  // Calculate the preview window size based on map dimensions
+  const windowWidth = Math.min(1024, state.mapWidth * state.tileSize + 100); // add padding
+  const windowHeight = Math.min(768, state.mapHeight * state.tileSize + 160); // add padding for title
+  
+  // Open a new window
+  const previewWindow = window.open('', 'MapPreview', 
+    `width=${windowWidth},height=${windowHeight},menubar=no,toolbar=no,location=no,status=no`);
+  
+  if (!previewWindow) {
+    showNotification('Unable to open preview window. Please check your popup blocker settings.', 'error');
+    return;
+  }
+  
+  // Write HTML content to the new window
+  previewWindow.document.write(`
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <title>Map Preview</title>
+      <style>
+        body {
+          margin: 0;
+          padding: 10px;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          background-color: #1a1a2e;
+          color: #e6e6e6;
+          font-family: Arial, sans-serif;
+          overflow: auto;
+        }
+        h2 {
+          margin-top: 0;
+          color: #4da6ff;
+          text-shadow: 0 0 5px rgba(77, 166, 255, 0.5);
+        }
+        .preview-container {
+          position: relative;
+          border: 2px solid #4da6ff;
+          border-radius: 4px;
+          box-shadow: 0 0 10px rgba(77, 166, 255, 0.5);
+          overflow: auto;
+          margin-bottom: 15px;
+        }
+        canvas {
+          display: block;
+        }
+        .info-bar {
+          display: flex;
+          justify-content: space-between;
+          width: 100%;
+          padding: 5px 10px;
+          background-color: #16213e;
+          border-top: 1px solid #4da6ff;
+          box-sizing: border-box;
+          font-size: 14px;
+        }
+      </style>
+    </head>
+    <body>
+      <h2>Map Preview</h2>
+      <div class="preview-container">
+        <canvas id="preview-canvas"></canvas>
+      </div>
+      <div class="info-bar">
+        <span>Dimensions: ${state.mapWidth} x ${state.mapHeight}</span>
+        <span>Visual Layers Only</span>
+        <span>Tile Size: ${state.tileSize}px</span>
+      </div>
+    </body>
+    </html>
+  `);
+  
+  // Close the document
+  previewWindow.document.close();
+  
+  // Wait for the window to load before drawing
+  previewWindow.onload = function() {
+    const canvas = previewWindow.document.getElementById('preview-canvas');
+    if (!canvas) {
+      previewWindow.alert('Error initializing preview canvas');
+      return;
+    }
+    
+    // Set canvas dimensions to match map size
+    canvas.width = state.mapWidth * state.tileSize;
+    canvas.height = state.mapHeight * state.tileSize;
+    
+    const ctx = canvas.getContext('2d');
+    
+    // Draw the map layers
+    // Draw visual layers (0-2) with full opacity
+    for (let layer = 0; layer < 3; layer++) {
+      // Draw tiles for this layer
+      for (let row = 0; row < state.mapHeight; row++) {
+        for (let col = 0; col < state.mapWidth; col++) {
+          const tileIndex = state.mapData.layers[layer][row][col];
+          if (tileIndex !== null) {
+            // Calculate tile position in tileset
+            const tilesetCol = tileIndex % state.tilesetCols;
+            const tilesetRow = Math.floor(tileIndex / state.tilesetCols);
+            const tileX = tilesetCol * state.tileSize;
+            const tileY = tilesetRow * state.tileSize;
+            
+            // Draw tile with full opacity
+            ctx.drawImage(
+              state.tilesetImage, 
+              tileX, tileY, state.tileSize, state.tileSize,
+              col * state.tileSize, row * state.tileSize, state.tileSize, state.tileSize
+            );
+          }
+        }
+      }
+    }
+    
+    // Reset opacity after drawing all visual layers
+    ctx.globalAlpha = 1.0;
+    
+    // Draw grid with light opacity for reference
+    ctx.globalAlpha = 0.2;
+    ctx.strokeStyle = '#4da6ff';
+    ctx.lineWidth = 1;
+    
+    // Draw vertical lines
+    for (let i = 0; i <= state.mapWidth; i++) {
+      ctx.beginPath();
+      ctx.moveTo(i * state.tileSize, 0);
+      ctx.lineTo(i * state.tileSize, state.mapHeight * state.tileSize);
+      ctx.stroke();
+    }
+    
+    // Draw horizontal lines
+    for (let i = 0; i <= state.mapHeight; i++) {
+      ctx.beginPath();
+      ctx.moveTo(0, i * state.tileSize);
+      ctx.lineTo(state.mapWidth * state.tileSize, i * state.tileSize);
+      ctx.stroke();
+    }
+    
+    // Reset opacity
+    ctx.globalAlpha = 1.0;
+  };
 }

@@ -2,7 +2,7 @@ import { state } from './app-state.js';
 import { validateMapData, drawMap } from './map-manager.js';
 import { showNotification } from './ui-utils.js';
 import { highlightSelectedTiles } from './tileset-manager.js';
-import { mapCanvas, mapWidthInput, mapHeightInput, tilesetCtx } from './dom-elements.js';
+import { mapCanvas, mapWidthInput, mapHeightInput, tilesetCtx, btnExportMap, btnPreviewMap, btnCreateMap } from './dom-elements.js';
 
 /**
  * Export map data to JSON
@@ -89,8 +89,9 @@ export async function importMap() {
       mapCanvas.width = state.mapWidth * state.tileSize;
       mapCanvas.height = state.mapHeight * state.tileSize;
       
-      // Enable export button
-      state.btnExportMap.disabled = false;
+      // Enable export and preview buttons
+      btnExportMap.disabled = false;
+      btnPreviewMap.disabled = false;
       
       // Draw the map
       drawMap();
@@ -102,7 +103,7 @@ export async function importMap() {
       }
       
       // Update Create Map button text since we now have map data
-      state.btnCreateMap.textContent = 'Restart Map';
+      btnCreateMap.textContent = 'Restart Map';
       
       // Show confirmation message
       showNotification('Map imported successfully', 'success');

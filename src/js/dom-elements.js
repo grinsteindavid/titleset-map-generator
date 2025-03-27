@@ -7,6 +7,7 @@ export const btnOpenTileset = document.getElementById('btn-open-tileset');
 export const btnExportMap = document.getElementById('btn-export-map');
 export const btnImportMap = document.getElementById('btn-import-map');
 export const btnCreateMap = document.getElementById('btn-create-map');
+export const btnPreviewMap = document.getElementById('btn-preview-map');
 export const mapWidthInput = document.getElementById('map-width');
 export const mapHeightInput = document.getElementById('map-height');
 export const tabButtons = document.querySelectorAll('.tab-button');
