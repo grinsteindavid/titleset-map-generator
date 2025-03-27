@@ -366,28 +366,6 @@ export function previewMap() {
     // Reset opacity after drawing all visual layers
     ctx.globalAlpha = 1.0;
     
-    // Draw grid with light opacity for reference
-    ctx.globalAlpha = 0.2;
-    ctx.strokeStyle = '#4da6ff';
-    ctx.lineWidth = 1;
-    
-    // Draw vertical lines
-    for (let i = 0; i <= state.mapWidth; i++) {
-      ctx.beginPath();
-      ctx.moveTo(i * state.tileSize, 0);
-      ctx.lineTo(i * state.tileSize, state.mapHeight * state.tileSize);
-      ctx.stroke();
-    }
-    
-    // Draw horizontal lines
-    for (let i = 0; i <= state.mapHeight; i++) {
-      ctx.beginPath();
-      ctx.moveTo(0, i * state.tileSize);
-      ctx.lineTo(state.mapWidth * state.tileSize, i * state.tileSize);
-      ctx.stroke();
-    }
-    
-    // Reset opacity
-    ctx.globalAlpha = 1.0;
+    // No grid or other editor elements in the preview
   };
 }
