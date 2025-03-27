@@ -209,9 +209,7 @@ export function createMap() {
   }
   
   // Map has been created, notify toolbar module
-  if (typeof window.updateToolbarState === 'function') {
-    window.updateToolbarState();
-  }
+  updateToolbarState();
   
   // Clear the canvas and draw grid
   clearMapCanvas();
